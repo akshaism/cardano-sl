@@ -1,14 +1,28 @@
--- | Types related to Poll monad.
+{-# LANGUAGE DeriveLift #-}
 
-module Pos.Update.Poll.Types
+-- | This module contains all basic types for @cardano-sl@ update system.
+
+module Pos.Core.Update.Poll
        (
+         -- * Undo
+         PrevValue (..)
+       , maybeToPrev
+       , USUndo (..)
+       , unChangedSVL
+       , unChangedPropsL
+       , unChangedBVL
+       , unLastAdoptedBVL
+       , unChangedConfPropsL
+       , unPrevProposersL
+       , unSlottingDataL
+
+       , ConfirmedProposalState (..)
          -- * Proposal state
-         UndecidedProposalState (..)
+       , UndecidedProposalState (..)
        , DecidedProposalState (..)
        , ProposalState (..)
        , UpsExtra (..)
        , DpsExtra (..)
-       , ConfirmedProposalState (..)
        , cpsBlockVersion
        , cpsSoftwareVersion
        , propStateToEither
@@ -23,31 +37,8 @@ module Pos.Update.Poll.Types
        , bvsSlotDuration
        , bvsMaxBlockSize
 
-         -- * Poll modifier
-       , PollModifier (..)
-       , pmBVsL
-       , pmAdoptedBVFullL
-       , pmConfirmedL
-       , pmConfirmedPropsL
-       , pmActivePropsL
-       , pmSlottingDataL
-       , pmEpochProposersL
-
-         -- * Rollback
-       , PrevValue (..)
-       , maybeToPrev
-       , USUndo (..)
-       , unChangedSVL
-       , unChangedPropsL
-       , unChangedBVL
-       , unLastAdoptedBVL
-       , unChangedConfPropsL
-       , unPrevProposersL
-       , unSlottingDataL
-
        -- * VoteState
        , StakeholderVotes
-       , LocalVotes
        , VoteState (..)
        , canCombineVotes
        , combineVotes
@@ -63,14 +54,12 @@ import qualified Data.Text.Buildable
 import           Data.Time.Units (Millisecond)
 import           Serokell.Data.Memory.Units (Byte)
 
+import           Pos.Core.Slotting (SlottingData)
 import           Pos.Core.Types (ApplicationName, BlockVersion, ChainDifficulty, Coin, EpochIndex,
                                  HeaderHash, NumSoftwareVersion, ScriptVersion, SlotId,
                                  SoftwareVersion, StakeholderId, mkCoin)
-import           Pos.Core.Update (BlockVersionData (..), BlockVersionModifier (..), UpId,
-                                  UpdateProposal (..), UpdateVote)
+import           Pos.Core.Update.Types (BlockVersionModifier (..), UpId, UpdateProposal (..))
 import           Pos.Crypto (PublicKey)
-import           Pos.Slotting.Types (SlottingData)
-import           Pos.Util.Modifier (MapModifier)
 
 ----------------------------------------------------------------------------
 -- VoteState
@@ -122,9 +111,21 @@ combineVotes decision oldVote =
         (False, Just PositiveVote) -> Just NegativeRevote
         (_, Just _)                -> Nothing
 
--- | Type alias for set of votes from stakeholders
 type StakeholderVotes = HashMap PublicKey VoteState
-type LocalVotes = HashMap UpId (HashMap PublicKey UpdateVote)
+
+-- | Information about confirmed proposals stored in DB.
+data ConfirmedProposalState = ConfirmedProposalState
+    { cpsUpdateProposal :: !UpdateProposal
+    , cpsImplicit       :: !Bool
+    , cpsProposed       :: !HeaderHash
+    , cpsDecided        :: !HeaderHash
+    , cpsConfirmed      :: !HeaderHash
+    , cpsAdopted        :: !(Maybe HeaderHash)
+    , cpsVotes          :: !StakeholderVotes
+    , cpsPositiveStake  :: !Coin
+    , cpsNegativeStake  :: !Coin
+    } deriving (Show, Generic, Eq)
+
 ----------------------------------------------------------------------------
 -- Proposal State
 ----------------------------------------------------------------------------
@@ -172,19 +173,6 @@ data DpsExtra = DpsExtra
       -- ^ HeaderHash  of block in which this update was approved/rejected
     , deImplicit   :: !Bool
       -- ^ Which way we approve/reject this update proposal: implicit or explicit
-    } deriving (Show, Generic, Eq)
-
--- | Information about confirmed proposals stored in DB.
-data ConfirmedProposalState = ConfirmedProposalState
-    { cpsUpdateProposal :: !UpdateProposal
-    , cpsImplicit       :: !Bool
-    , cpsProposed       :: !HeaderHash
-    , cpsDecided        :: !HeaderHash
-    , cpsConfirmed      :: !HeaderHash
-    , cpsAdopted        :: !(Maybe HeaderHash)
-    , cpsVotes          :: !StakeholderVotes
-    , cpsPositiveStake  :: !Coin
-    , cpsNegativeStake  :: !Coin
     } deriving (Show, Generic, Eq)
 
 -- | Get 'BlockVersion' from 'ConfirmedProposalState'.
@@ -270,33 +258,6 @@ bvsSlotDuration = bvmSlotDuration . bvsModifier
 
 bvsMaxBlockSize :: BlockVersionState -> Maybe Byte
 bvsMaxBlockSize = bvmMaxBlockSize . bvsModifier
-
-----------------------------------------------------------------------------
--- Modifier
-----------------------------------------------------------------------------
-
--- | PollModifier is used in verification. It represents operation which
--- one should apply to global state to obtain result of application of
--- MemPool or blocks which are verified.
-data PollModifier = PollModifier
-    { pmBVs            :: !(MapModifier BlockVersion BlockVersionState)
-    , pmAdoptedBVFull  :: !(Maybe (BlockVersion, BlockVersionData))
-    , pmConfirmed      :: !(MapModifier ApplicationName NumSoftwareVersion)
-    , pmConfirmedProps :: !(MapModifier SoftwareVersion ConfirmedProposalState)
-    , pmActiveProps    :: !(MapModifier UpId ProposalState)
-    , pmSlottingData   :: !(Maybe SlottingData)
-    , pmEpochProposers :: !(Maybe (HashSet StakeholderId))
-    } deriving (Eq, Show, Generic)
-
-flip makeLensesFor ''PollModifier
-    [ ("pmBVs", "pmBVsL")
-    , ("pmAdoptedBVFull", "pmAdoptedBVFullL")
-    , ("pmConfirmed", "pmConfirmedL")
-    , ("pmConfirmedProps", "pmConfirmedPropsL")
-    , ("pmActiveProps", "pmActivePropsL")
-    , ("pmSlottingData", "pmSlottingDataL")
-    , ("pmEpochProposers", "pmEpochProposersL")
-    ]
 
 ----------------------------------------------------------------------------
 -- Undo

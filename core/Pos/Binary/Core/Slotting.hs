@@ -1,6 +1,6 @@
 -- | Binary serialization of types from Slotting.
 
-module Pos.Binary.Infra.Slotting
+module Pos.Binary.Core.Slotting
        (
        ) where
 
@@ -9,10 +9,10 @@ import           Universum
 import           Data.Time.Units (Millisecond)
 
 import           Pos.Binary.Class (Bi (..), Cons (..), Field (..), deriveSimpleBi)
-import           Pos.Binary.Core ()
+import           Pos.Binary.Core.Types ()
+import           Pos.Core.Slotting (EpochSlottingData (..), SlottingData, createSlottingDataUnsafe,
+                                    getSlottingDataMap, isValidSlottingDataMap)
 import           Pos.Core.Timestamp (TimeDiff)
-import           Pos.Slotting.Types (EpochSlottingData (..), SlottingData, createSlottingDataUnsafe,
-                                     getSlottingDataMap, isValidSlottingDataMap)
 
 deriveSimpleBi ''EpochSlottingData [
     Cons 'EpochSlottingData [

@@ -14,17 +14,27 @@ module Pos.Core.Slotting
        , epochOrSlotToSlot
        , mkLocalSlotIndex
        , addLocalSlotIndex
+
+       , EpochSlottingData (..)
+       , SlottingData (..)
+       , CurrentEpochSlottingData
+       , NextEpochSlottingData
+       , createSlottingDataUnsafe
+       , isValidSlottingDataMap
        ) where
 
 import           Universum
 
 import           Control.Lens (Iso', iso, lens)
 import           Control.Monad.Except (MonadError (throwError))
+import           Data.Map.Strict as M
 import           System.Random (Random (..))
 
+import           Data.Time.Units (Millisecond)
 import           Pos.Core.Class (HasEpochIndex (..), HasEpochOrSlot (..), getEpochOrSlot)
 import           Pos.Core.Configuration.Protocol (HasProtocolConstants, epochSlots,
                                                   slotSecurityParam)
+import           Pos.Core.Timestamp (TimeDiff)
 import           Pos.Core.Types (EpochIndex (..), EpochOrSlot (..), FlatSlotId, LocalSlotIndex (..),
                                  SlotCount, SlotId (..), getSlotIndex)
 import           Pos.Util.Util (leftToPanic)
@@ -203,3 +213,55 @@ epochOrSlot f g = either f g . unEpochOrSlot
 -- returned.
 epochOrSlotToSlot :: HasProtocolConstants => EpochOrSlot -> SlotId
 epochOrSlotToSlot = epochOrSlot (flip SlotId minBound) identity
+
+----------------------------------------------------------------------------
+-- Type declarations
+----------------------------------------------------------------------------
+
+-- | Data which is necessary for slotting and corresponds to a particular epoch.
+data EpochSlottingData = EpochSlottingData
+    { esdSlotDuration :: !Millisecond
+    -- ^ Slot duration actual for given epoch.
+    , esdStartDiff    :: !TimeDiff
+    -- ^ Difference between epoch start and system start time
+    } deriving (Eq, Show, Generic)
+
+instance NFData EpochSlottingData
+
+-- Helpful type aliases
+type CurrentEpochSlottingData = EpochSlottingData
+type NextEpochSlottingData    = EpochSlottingData
+
+-- | Data necessary for slotting to work which is basically part of GState.
+-- Note that it's important to use error rather than default values like 0, because
+-- such cases indicate invariants violation and shouldn't be hidden behind default values.
+newtype SlottingData = SlottingData
+    { getSlottingDataMap :: Map EpochIndex EpochSlottingData
+    -- ^ Map containing the @EpochSlottingData@ for all the (known) @Epoch@
+    } deriving (Eq, Show, Generic, Monoid)
+
+instance NFData SlottingData
+
+-- | Unsafe constructor that can lead to unsafe crash!
+createSlottingDataUnsafe :: Map EpochIndex EpochSlottingData -> SlottingData
+createSlottingDataUnsafe epochSlottingDataMap =
+    if isValidSlottingDataMap epochSlottingDataMap
+        then SlottingData epochSlottingDataMap
+        else criticalError
+  where
+    criticalError = error "It's impossible to create slotting data without at least\
+    \ two epochs. Epochs need to be sequential."
+
+-- | The validation for the @SlottingData@. It's visible since it's needed externally.
+isValidSlottingDataMap :: Map EpochIndex EpochSlottingData -> Bool
+isValidSlottingDataMap epochSlottingDataMap =
+    M.size epochSlottingDataMap >= 2 && validEpochIndices
+  where
+    -- We validate if the epoch indices are sequential, it's invalid if they
+    -- start having "holes" [..,6,7,9,...].
+    validEpochIndices = correctEpochIndices == currentEpochIndices
+      where
+        currentEpochIndices = keys epochSlottingDataMap
+        correctEpochIndices = EpochIndex . fromIntegral <$> [0..zIMapLenght]
+          where
+            zIMapLenght = pred . length . keys $ epochSlottingDataMap

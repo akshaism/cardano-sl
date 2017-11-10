@@ -47,6 +47,7 @@ library
                        Pos.Core.Block.Union
                        Pos.Core.Block.Union.Instances
                        Pos.Core.Block.Union.Types
+                       Pos.Core.Block.Undo
 
                        Pos.Core.BlockVersionData
                        Pos.Core.Class
@@ -63,6 +64,8 @@ library
                        Pos.Core.Delegation
                        Pos.Core.Fee
                        Pos.Core.Update
+                       Pos.Core.Update.Types
+                       Pos.Core.Update.Poll
                        Pos.Core.Script
                        Pos.Core.SharedSeed
                        Pos.Core.Slotting
@@ -117,7 +120,9 @@ library
                        Pos.Binary.Core.Coin
                        Pos.Binary.Core.Delegation
                        Pos.Binary.Core.Fee
+                       Pos.Binary.Core.Poll
                        Pos.Binary.Core.Script
+                       Pos.Binary.Core.Slotting
                        Pos.Binary.Core.Ssc
                        Pos.Binary.Core.Txp
                        Pos.Binary.Core.Types

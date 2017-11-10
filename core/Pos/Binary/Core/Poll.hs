@@ -1,4 +1,4 @@
-module Pos.Binary.Update.Poll
+module Pos.Binary.Core.Poll
        (
        ) where
 
@@ -6,13 +6,14 @@ import           Universum
 
 import           Pos.Binary.Class (Bi (..), Cons (..), Field (..), decodeListLenCanonical,
                                    deriveSimpleBi, deriveSimpleBiCxt, encodeListLen)
-import           Pos.Binary.Infra ()
-import           Pos.Core (ApplicationName, BlockVersion, ChainDifficulty, Coin, EpochIndex,
-                           HasConfiguration, HeaderHash, NumSoftwareVersion, SlotId,
-                           SoftwareVersion, StakeholderId)
+import           Pos.Binary.Core.Slotting ()
+import           Pos.Binary.Core.Update ()
+import           Pos.Core.Configuration (HasConfiguration)
+import           Pos.Core.Slotting (SlottingData)
+import           Pos.Core.Types (ApplicationName, BlockVersion, ChainDifficulty, Coin, EpochIndex,
+                                 HeaderHash, NumSoftwareVersion, SlotId, SoftwareVersion,
+                                 StakeholderId)
 import qualified Pos.Core.Update as U
-import           Pos.Slotting.Types (SlottingData)
-import qualified Pos.Update.Poll.Types as U
 
 deriveSimpleBi ''U.VoteState [
     Cons 'U.PositiveVote [],

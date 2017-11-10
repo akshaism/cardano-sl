@@ -3,6 +3,8 @@
 module Pos.Core.Delegation
        ( DlgPayload (..)
        , mkDlgPayload
+
+       , DlgUndo (..)
        ) where
 
 import           Universum
@@ -15,7 +17,7 @@ import           Formatting (bprint, int, sformat, (%))
 import           Serokell.Util (listJson)
 
 import           Pos.Core.Configuration (HasConfiguration)
-import           Pos.Core.Types (ProxySKHeavy)
+import           Pos.Core.Types (ProxySKHeavy, StakeholderId)
 import           Pos.Crypto (ProxySecretKey (..), verifyPsk)
 
 -- Consider making this a set.
@@ -54,3 +56,21 @@ mkDlgPayload proxySKs = do
     duplicates = proxySKsDups proxySKs
     wrongPSKs = filter (not . verifyPsk) proxySKs
 
+-- | Undo for the delegation component.
+data DlgUndo = DlgUndo
+    { duPsks            :: ![ProxySKHeavy]
+      -- ^ PSKs we've modified when applying the block (by deleting or
+      -- overwriting).
+    , duPrevEpochPosted :: !(HashSet StakeholderId)
+      -- ^ Set of stakeholders that posted in epoch i. This field
+      -- should be present only for genesis block of epoch i+1.
+    } deriving (Generic)
+
+instance NFData DlgUndo
+
+instance Buildable DlgUndo where
+    build DlgUndo{..} =
+        bprint ("DlgUndo:"%
+                "\n  duPsks: "%listJson%
+                "\n  duPrevEpochPosted: "%listJson)
+               duPsks duPrevEpochPosted

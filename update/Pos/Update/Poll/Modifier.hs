@@ -1,14 +1,68 @@
--- | Functions working with PollModifier.
+-- | Types related to Poll monad.
 
 module Pos.Update.Poll.Modifier
-       ( modifyPollModifier
+       (
+         -- * Poll modifier
+       , PollModifier (..)
+       , pmBVsL
+       , pmAdoptedBVFullL
+       , pmConfirmedL
+       , pmConfirmedPropsL
+       , pmActivePropsL
+       , pmSlottingDataL
+       , pmEpochProposersL
+       , modifyPollModifier
+
+       , LocalVotes
        ) where
 
-import           Data.Default (Default (def))
-import           Data.Semigroup (Semigroup)
 import           Universum
 
-import           Pos.Update.Poll.Types (PollModifier (..))
+import           Control.Lens (makeLensesFor)
+import           Data.Default (Default (def))
+import qualified Data.Text.Buildable
+import           Data.Time.Units (Millisecond)
+import           Serokell.Data.Memory.Units (Byte)
+
+import           Pos.Core.Types (ApplicationName, BlockVersion, ChainDifficulty, Coin, EpochIndex,
+                                 HeaderHash, NumSoftwareVersion, ScriptVersion, SlotId,
+                                 SoftwareVersion, StakeholderId, mkCoin)
+import           Pos.Core.Update (BlockVersionData (..), BlockVersionModifier (..), UpId,
+                                  UpdateProposal (..), UpdateVote)
+import           Pos.Crypto (PublicKey)
+import           Pos.Slotting.Types (SlottingData)
+import           Pos.Util.Modifier (MapModifier)
+
+
+-- | Type alias for set of votes from stakeholders
+type LocalVotes = HashMap UpId (HashMap PublicKey UpdateVote)
+
+----------------------------------------------------------------------------
+-- Modifier
+----------------------------------------------------------------------------
+
+-- | PollModifier is used in verification. It represents operation which
+-- one should apply to global state to obtain result of application of
+-- MemPool or blocks which are verified.
+data PollModifier = PollModifier
+    { pmBVs            :: !(MapModifier BlockVersion BlockVersionState)
+    , pmAdoptedBVFull  :: !(Maybe (BlockVersion, BlockVersionData))
+    , pmConfirmed      :: !(MapModifier ApplicationName NumSoftwareVersion)
+    , pmConfirmedProps :: !(MapModifier SoftwareVersion ConfirmedProposalState)
+    , pmActiveProps    :: !(MapModifier UpId ProposalState)
+    , pmSlottingData   :: !(Maybe SlottingData)
+    , pmEpochProposers :: !(Maybe (HashSet StakeholderId))
+    } deriving (Eq, Show, Generic)
+
+flip makeLensesFor ''PollModifier
+    [ ("pmBVs", "pmBVsL")
+    , ("pmAdoptedBVFull", "pmAdoptedBVFullL")
+    , ("pmConfirmed", "pmConfirmedL")
+    , ("pmConfirmedProps", "pmConfirmedPropsL")
+    , ("pmActiveProps", "pmActivePropsL")
+    , ("pmSlottingData", "pmSlottingDataL")
+    , ("pmEpochProposers", "pmEpochProposersL")
+    ]
 
 instance Default PollModifier where
     def =

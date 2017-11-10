@@ -6,16 +6,21 @@ module Pos.Binary.Core.Block
 
 import           Universum
 
-import           Pos.Binary.Class (Bi (..), Cons (..), Field (..), deriveSimpleBi, encodeListLen,
-                                   enforceSize)
+import           Pos.Binary.Class (Bi (..), Cons (..), Field (..), deriveSimpleBi,
+                                   deriveSimpleBiCxt, encodeListLen, enforceSize)
+import           Pos.Binary.Core.Poll ()
 import           Pos.Binary.Core.Txp ()
 import qualified Pos.Core.Block.Blockchain as Core
 import qualified Pos.Core.Block.Genesis.Chain as BC
 import qualified Pos.Core.Block.Genesis.Types as BC
 import qualified Pos.Core.Block.Main.Chain as BC
 import qualified Pos.Core.Block.Main.Types as BC
+import qualified Pos.Core.Block.Undo as BC
 import           Pos.Core.Configuration (HasConfiguration)
-import           Pos.Core.Types (BlockVersion, SoftwareVersion)
+import           Pos.Core.Delegation (DlgUndo)
+import           Pos.Core.Txp (TxpUndo)
+import           Pos.Core.Types (BlockVersion, FlatSlotId, SoftwareVersion)
+import           Pos.Core.Update (USUndo)
 import           Pos.Crypto (Hash)
 
 ----------------------------------------------------------------------------
@@ -132,3 +137,20 @@ instance Bi (BC.ConsensusData BC.GenesisBlockchain) where
 instance Bi (BC.Body BC.GenesisBlockchain) where
   encode = encode . BC._gbLeaders
   decode = BC.GenesisBody <$> decode
+
+----------------------------------------------------------------------------
+-- Undo
+----------------------------------------------------------------------------
+
+deriveSimpleBi ''BC.SlogUndo [
+    Cons 'BC.SlogUndo [
+        Field [| BC.getSlogUndo  :: Maybe FlatSlotId |]
+    ]]
+
+deriveSimpleBiCxt [t|HasConfiguration|] ''BC.Undo [
+    Cons 'BC.Undo [
+        Field [| BC.undoTx    :: TxpUndo  |],
+        Field [| BC.undoDlg   :: DlgUndo  |],
+        Field [| BC.undoUS    :: USUndo   |],
+        Field [| BC.undoSlog  :: BC.SlogUndo |]
+    ]]

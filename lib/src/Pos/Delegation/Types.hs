@@ -20,26 +20,6 @@ import           Pos.Core (ProxySKHeavy, ProxySKLight, ProxySigLight, Stakeholde
 import           Pos.Core.Delegation (DlgPayload (..), mkDlgPayload)
 import           Pos.Crypto (PublicKey)
 
-
--- | Undo for the delegation component.
-data DlgUndo = DlgUndo
-    { duPsks            :: ![ProxySKHeavy]
-      -- ^ PSKs we've modified when applying the block (by deleting or
-      -- overwriting).
-    , duPrevEpochPosted :: !(HashSet StakeholderId)
-      -- ^ Set of stakeholders that posted in epoch i. This field
-      -- should be present only for genesis block of epoch i+1.
-    } deriving (Generic)
-
-instance NFData DlgUndo
-
-instance Buildable DlgUndo where
-    build DlgUndo{..} =
-        bprint ("DlgUndo:"%
-                "\n  duPsks: "%listJson%
-                "\n  duPrevEpochPosted: "%listJson)
-               duPsks duPrevEpochPosted
-
 -- | Map from issuer public keys to related heavy certs.
 type DlgMemPool = HashMap PublicKey ProxySKHeavy
 

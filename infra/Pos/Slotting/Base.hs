@@ -1,9 +1,7 @@
 -- | Core types used in 'Slotting'.
 
-module Pos.Slotting.Types
-       ( EpochSlottingData (..)
-       , SlottingData
-       , getSlottingDataMap
+module Pos.Slotting.Base
+       ( getSlottingDataMap
        , createSlottingDataUnsafe
        , isValidSlottingDataMap
        , createInitSlottingData
@@ -29,60 +27,8 @@ import           Pos.Util.Util ()
 
 
 ----------------------------------------------------------------------------
--- Type declarations
-----------------------------------------------------------------------------
-
--- | Data which is necessary for slotting and corresponds to a particular epoch.
-data EpochSlottingData = EpochSlottingData
-    { esdSlotDuration :: !Millisecond
-    -- ^ Slot duration actual for given epoch.
-    , esdStartDiff    :: !TimeDiff
-    -- ^ Difference between epoch start and system start time
-    } deriving (Eq, Show, Generic)
-
-instance NFData EpochSlottingData
-
--- Helpful type aliases
-type CurrentEpochSlottingData = EpochSlottingData
-type NextEpochSlottingData    = EpochSlottingData
-
--- | Data necessary for slotting to work which is basically part of GState.
--- Note that it's important to use error rather than default values like 0, because
--- such cases indicate invariants violation and shouldn't be hidden behind default values.
-newtype SlottingData = SlottingData
-    { getSlottingDataMap :: Map EpochIndex EpochSlottingData
-    -- ^ Map containing the @EpochSlottingData@ for all the (known) @Epoch@
-    } deriving (Eq, Show, Generic, Monoid)
-
-instance NFData SlottingData
-
-----------------------------------------------------------------------------
 -- Functions
 ----------------------------------------------------------------------------
-
--- | Unsafe constructor that can lead to unsafe crash!
-createSlottingDataUnsafe :: Map EpochIndex EpochSlottingData -> SlottingData
-createSlottingDataUnsafe epochSlottingDataMap =
-    if isValidSlottingDataMap epochSlottingDataMap
-        then SlottingData epochSlottingDataMap
-        else criticalError
-  where
-    criticalError = error "It's impossible to create slotting data without at least\
-    \ two epochs. Epochs need to be sequential."
-
--- | The validation for the @SlottingData@. It's visible since it's needed externally.
-isValidSlottingDataMap :: Map EpochIndex EpochSlottingData -> Bool
-isValidSlottingDataMap epochSlottingDataMap =
-    M.size epochSlottingDataMap >= 2 && validEpochIndices
-  where
-    -- We validate if the epoch indices are sequential, it's invalid if they
-    -- start having "holes" [..,6,7,9,...].
-    validEpochIndices = correctEpochIndices == currentEpochIndices
-      where
-        currentEpochIndices = keys epochSlottingDataMap
-        correctEpochIndices = EpochIndex . fromIntegral <$> [0..zIMapLenght]
-          where
-            zIMapLenght = pred . length . keys $ epochSlottingDataMap
 
 -- | Restricted constructor function for the (initial) creation of @SlottingData@.
 createInitSlottingData

@@ -29,6 +29,7 @@ library
 
                         -- Slotting
                         Pos.Slotting
+                        Pos.Slotting.Base
                         Pos.Slotting.Class
                         Pos.Slotting.Configuration
                         Pos.Slotting.Impl
@@ -37,7 +38,6 @@ library
                         Pos.Slotting.Impl.Sum
                         Pos.Slotting.Impl.Util
                         Pos.Slotting.MemState
-                        Pos.Slotting.Types
                         Pos.Slotting.Error
                         Pos.Slotting.Util
 
@@ -103,7 +103,6 @@ library
                         -- Pos.Binary
                         Pos.Binary.Infra
                         Pos.Binary.Infra.DHTModel
-                        Pos.Binary.Infra.Slotting
                         Pos.Binary.Infra.Relay
 
                         -- Pos.Util
