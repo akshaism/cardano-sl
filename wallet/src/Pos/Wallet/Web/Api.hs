@@ -73,7 +73,7 @@ import           Control.Monad.Catch (try)
 import           Data.Reflection (Reifies (..))
 import           Servant.API ((:<|>), (:>), Capture, Delete, Get, JSON, Post, Put, QueryParam,
                               ReflectMethod (..), ReqBody, Verb)
-import           Servant.API.ContentTypes (NoContent, OctetStream)
+import           Servant.API.ContentTypes (AllCTRender, NoContent, OctetStream)
 import           Servant.Server (HasServer (..))
 import           Servant.Swagger.UI (SwaggerSchemaUI)
 import           Universum
@@ -111,6 +111,9 @@ instance ReportDecodeError (WalletVerb (Verb (mt :: k1) (st :: Nat) (ct :: [*]) 
     reportDecodeError _ err = throwM (DecodeError err) ^. from serverHandlerL'
 
 instance ( HasServer (Verb mt st ct $ ApiModifiedRes WalletVerbTag a) ctx
+         , AllCTRender ct a
+         , KnownNat st
+         , ReflectMethod mt
          , Reifies config ApiLoggingConfig
          , ReflectMethod mt
          , Buildable (WithTruncatedLog a)
