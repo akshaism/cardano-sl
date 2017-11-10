@@ -44,7 +44,6 @@ import qualified Pos.Block.Logic as L
 import           Pos.Block.Network.Announce (announceBlock)
 import           Pos.Block.Network.Types (MsgGetBlocks (..), MsgGetHeaders (..), MsgHeaders (..))
 import           Pos.Block.RetrievalQueue (BlockRetrievalQueue, BlockRetrievalTask (..))
-import           Pos.Block.Types (Blund)
 import           Pos.Communication.Limits (recvLimited)
 import           Pos.Communication.Protocol (Conversation (..), ConversationActions (..),
                                              EnqueueMsg, MsgType (..), NodeId, OutSpecs, convH,
@@ -53,10 +52,10 @@ import           Pos.Context (BlockRetrievalQueueTag, LastKnownHeaderTag, recove
 import           Pos.Core (EpochOrSlot (..), HasConfiguration, HasHeaderHash (..), HeaderHash,
                            SlotId (..), criticalForkThreshold, crucialSlot, epochIndexL,
                            epochOrSlotG, gbHeader, headerHashG, isMoreDifficult, prevBlockL)
-import           Pos.Core.Block (Block, BlockHeader, blockHeader)
+import           Pos.Core.Block (Block, BlockHeader, Blund, blockHeader)
 import           Pos.Crypto (shortHashF)
-import           Pos.DB.Block (blkGetHeader)
-import qualified Pos.DB.DB as DB
+import qualified Pos.DB.Block.Load as DB
+import qualified Pos.DB.GState.Common as GS
 import           Pos.Exception (cardanoExceptionFromException, cardanoExceptionToException)
 import           Pos.Lrc.Error (LrcError (UnknownBlocksForLrc))
 import           Pos.Lrc.Worker (lrcSingleShot)
@@ -158,7 +157,7 @@ mkHeadersRequest
        WorkMode ctx m
     => HeaderHash -> m MkHeadersRequestResult
 mkHeadersRequest upto = do
-    uHdr <- blkGetHeader upto
+    uHdr <- GS.getHeader upto
     if isJust uHdr then return MhrrBlockAdopted else do
         bHeaders <- toList <$> getHeadersOlderExp Nothing
         pure $ MhrrWithCheckpoints $ MsgGetHeaders (toList bHeaders) (Just upto)
@@ -346,7 +345,7 @@ handleRequestedHeaders cont inRecovery headers = do
     oldestEpoch = oldestHeader ^. epochIndexL
 
     tryCalculateLrc = do
-        tip <- DB.getTipHeader
+        tip <- GS.getTipHeader
         let tipEpochOrSlot = tip ^. epochOrSlotG
         let tipEpoch = tip ^. epochIndexL
         let differentEpochs = oldestEpoch == tipEpoch + 1

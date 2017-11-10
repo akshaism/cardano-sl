@@ -41,7 +41,7 @@ import           Pos.Core.Configuration (HasConfiguration, criticalCQ, criticalC
                                          nonCriticalCQ, nonCriticalCQBootstrap)
 import           Pos.Crypto (ProxySecretKey (pskDelegatePk, pskIssuerPk, pskOmega))
 import           Pos.DB (gsIsBootstrapEra)
-import qualified Pos.DB.DB as DB
+import qualified Pos.DB.GState.Common as GS
 import           Pos.DB.Misc (getProxySecretKeysLight)
 import           Pos.Delegation.Helpers (isRevokePsk)
 import           Pos.Delegation.Logic (getDlgTransPsk)
@@ -263,7 +263,7 @@ reportTotalBlocks ::
        forall ctx m. WorkMode ctx m
     => m ()
 reportTotalBlocks = do
-    difficulty <- view difficultyL <$> DB.getTipHeader
+    difficulty <- view difficultyL <$> GS.getTipHeader
     monitor <- difficultyMonitor <$> view scDifficultyMonitorState
     recordValue monitor difficulty
 

@@ -35,16 +35,16 @@ import           Pos.Binary.Core ()
 import           Pos.Block.BListener (MonadBListener (..))
 import           Pos.Block.Pure (verifyBlocks)
 import           Pos.Block.Slog.Context (slogGetLastSlots, slogPutLastSlots)
-import           Pos.Block.Slog.Types (HasSlogGState, LastBlkSlots, SlogUndo (..))
-import           Pos.Block.Types (Blund, Undo (..))
+import           Pos.Block.Slog.Types (HasSlogGState, LastBlkSlots)
 import           Pos.Context (lrcActionOnEpochReason)
 import           Pos.Core (BlockVersion (..), FlatSlotId, HasConfiguration, blkSecurityParam,
                            difficultyL, epochIndexL, flattenSlotId, headerHash, headerHashG,
                            prevBlockL)
-import           Pos.Core.Block (Block, genBlockLeaders, mainBlockSlot)
+import           Pos.Core.Block (Block, Blund, SlogUndo (..), Undo (..), genBlockLeaders,
+                                 mainBlockSlot)
 import           Pos.DB (SomeBatchOp (..))
-import           Pos.DB.Block (MonadBlockDBWrite, blkGetHeader)
-import           Pos.DB.Class (MonadDBRead, dbPutBlund)
+import           Pos.DB.Class (MonadDB (..), MonadDBRead)
+import qualified Pos.DB.GState.Common as DB
 import           Pos.Exception (assertionFailed, reportFatalError)
 import qualified Pos.GState as GS
 import           Pos.Lrc.Context (HasLrcContext)
@@ -175,7 +175,7 @@ slogVerifyBlocks blocks = do
 -- | Set of constraints necessary to apply/rollback blocks in Slog.
 type MonadSlogApply ctx m =
     ( MonadSlogBase ctx m
-    , MonadBlockDBWrite m
+    , MonadDB m
     , MonadBListener m
     , MonadMask m
     , MonadReader ctx m
@@ -267,7 +267,7 @@ slogRollbackBlocks (BypassSecurityCheck bypassSecurity) (ShouldCallBListener cal
     maxSeenDifficulty <- GS.getMaxSeenDifficulty
     resultingDifficulty <-
         maybe 0 (view difficultyL) <$>
-        blkGetHeader (NE.head (getOldestFirst . toOldestFirst $ blunds) ^. prevBlockL)
+        DB.getHeader (NE.head (getOldestFirst . toOldestFirst $ blunds) ^. prevBlockL)
     let
         secure =
             -- no underflow from subtraction

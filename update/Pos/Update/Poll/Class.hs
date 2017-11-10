@@ -15,10 +15,9 @@ import           System.Wlog (WithLogger)
 import           Pos.Core (ApplicationName, BlockVersion, ChainDifficulty, Coin, EpochIndex,
                            HasConfiguration, NumSoftwareVersion, SlotId, SoftwareVersion,
                            StakeholderId)
-import           Pos.Core.Update (BlockVersionData, UpId)
-import           Pos.Slotting.Types (SlottingData)
-import           Pos.Update.Poll.Types (BlockVersionState, ConfirmedProposalState,
-                                        DecidedProposalState, ProposalState, UndecidedProposalState)
+import           Pos.Core.Slotting (SlottingData)
+import           Pos.Core.Update (BlockVersionData, BlockVersionState, ConfirmedProposalState,
+                                  DecidedProposalState, ProposalState, UndecidedProposalState, UpId)
 
 ----------------------------------------------------------------------------
 -- Read-only

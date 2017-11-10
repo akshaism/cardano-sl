@@ -25,7 +25,6 @@ import           Pos.Core (GenesisData (gdBootStakeholders, gdHeavyDelegation),
                            GenesisDelegation (..), GenesisWStakeholders (..), addressHash,
                            gdFtsSeed, genesisData)
 import           Pos.Crypto (pskDelegatePk)
-import qualified Pos.DB.DB as DB
 import           Pos.DHT.Real (KademliaDHTInstance (..), kademliaJoinNetworkNoThrow,
                                kademliaJoinNetworkRetry)
 import qualified Pos.GState as GS
@@ -106,7 +105,7 @@ runNode' NodeResources {..} workers' plugins' = ActionSpec $ \vI sendActions -> 
             sformat ("Last known leaders for epoch "%build%" are: "%listJson)
                     lastKnownEpoch leaders
     LrcDB.getLeadersForEpoch lastKnownEpoch >>= maybe onNoLeaders onLeaders
-    tipHeader <- DB.getTipHeader
+    tipHeader <- GS.getTipHeader
     logInfo $ sformat ("Current tip header: "%build) tipHeader
 
     waitSystemStart

@@ -5,7 +5,7 @@ import           Universum
 import           Test.Hspec (Spec, describe)
 
 import           Pos.Arbitrary.Infra ()
-import           Pos.Slotting.Types (SlottingData)
+import           Pos.Slotting (SlottingData)
 
 import           Test.Pos.Helpers (binaryTest)
 

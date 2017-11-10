@@ -26,16 +26,15 @@ import           Serokell.Util (listJson, mapJson)
 import           System.Wlog (WithLogger, logDebug)
 
 import           Pos.Binary.Communication ()
-import           Pos.Block.Types (Blund, Undo (undoDlg))
 import           Pos.Context (lrcActionOnEpochReason)
 import           Pos.Core (EpochIndex (..), HasConfiguration, StakeholderId, addressHash,
                            epochIndexL, gbHeader, headerHash, prevBlockL, siEpoch)
+import           Pos.Core.Block (Blund, Undo (undoDlg))
 import           Pos.Core.Block (Block, mainBlockDlgPayload, mainBlockSlot)
 import           Pos.Crypto (ProxySecretKey (..), shortHashF)
 import           Pos.DB (DBError (DBMalformed), MonadDBRead, SomeBatchOp (..))
 import qualified Pos.DB as DB
-import qualified Pos.DB.Block as DB
-import qualified Pos.DB.DB as DB
+import qualified Pos.DB.GState.Common as GS
 import           Pos.Delegation.Cede (CedeModifier (..), CheckForCycle (..), DlgEdgeAction (..),
                                       MapCede, MonadCede (..), MonadCedeRead (..),
                                       detectCycleOnAddition, dlgEdgeActionIssuer, dlgVerifyHeader,
@@ -318,7 +317,7 @@ getNoLongerRichmen newEpoch =
 -- point of view.
 dlgVerifyBlocks ::
        forall ctx m.
-       ( DB.MonadBlockDB m
+       ( MonadDBRead m
        , MonadIO m
        , MonadReader ctx m
        , HasLrcContext ctx
@@ -465,7 +464,7 @@ dlgApplyBlocks blunds = do
 dlgRollbackBlocks
     :: forall ctx m.
        ( MonadDelegation ctx m
-       , DB.MonadBlockDB m
+       , MonadDBRead m
        , WithLogger m
        )
     => NewestFirst NE Blund -> m (NonEmpty SomeBatchOp)
@@ -493,7 +492,7 @@ dlgRollbackBlocks blunds = do
 dlgNormalizeOnRollback ::
        forall ctx m.
        ( MonadDelegation ctx m
-       , DB.MonadBlockDB m
+       , MonadDBRead m
        , DB.MonadGState m
        , MonadIO m
        , MonadMask m
@@ -503,7 +502,7 @@ dlgNormalizeOnRollback ::
        )
     => m ()
 dlgNormalizeOnRollback = do
-    tip <- DB.getTipHeader
+    tip <- GS.getTipHeader
     oldPool <- runDelegationStateAction $ do
         pool <- uses dwProxySKPool toList
         dwProxySKPool .= mempty

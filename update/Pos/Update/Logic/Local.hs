@@ -35,6 +35,7 @@ import           Pos.Binary.Class (biSize)
 import           Pos.Core (BlockVersionData (bvdMaxBlockSize), HasConfiguration, HeaderHash,
                            SlotId (..), slotIdF)
 import           Pos.Core.Update (UpId, UpdatePayload (..), UpdateProposal, UpdateVote (..))
+import           Pos.Core.Update.Poll (canCombineVotes, psVotes)
 import           Pos.Crypto (PublicKey, shortHashF)
 import           Pos.DB.Class (MonadDBRead)
 import qualified Pos.DB.GState.Common as DB
@@ -47,10 +48,10 @@ import qualified Pos.Update.DB as DB
 import           Pos.Update.MemState (LocalVotes, MemPool (..), MemState (..), MemVar (mvState),
                                       UpdateProposals, addToMemPool, withUSLock)
 import           Pos.Update.Poll (MonadPoll (deactivateProposal), MonadPollRead (getProposal),
-                                  PollModifier, PollVerFailure (..), canCombineVotes, evalPollT,
-                                  execPollT, filterProposalsByThd, modifyPollModifier,
-                                  normalizePoll, psVotes, refreshPoll, reportUnexpectedError,
-                                  runDBPoll, runPollT, verifyAndApplyUSPayload)
+                                  PollModifier, PollVerFailure (..), evalPollT, execPollT,
+                                  filterProposalsByThd, modifyPollModifier, normalizePoll,
+                                  refreshPoll, reportUnexpectedError, runDBPoll, runPollT,
+                                  verifyAndApplyUSPayload)
 import           Pos.Util.Util (HasLens (..), HasLens')
 
 type USLocalLogicMode ctx m =

@@ -5,7 +5,8 @@
 module Pos.DB.GState.Common
        (
          -- * Getters
-         getTip
+         MonadBlockDBSafe
+       , getTip
        , getTipBlock
        , getHeader
        , getTipHeader
@@ -25,6 +26,8 @@ module Pos.DB.GState.Common
 
          -- * Operations
        , CommonOp (..)
+
+       , blockIndexKey
        ) where
 
 import           Universum
@@ -72,6 +75,8 @@ writeBatchGState = dbWriteBatch' GStateDB
 -- Common getters
 ----------------------------------------------------------------------------
 
+type MonadBlockDBSafe m = (MonadDBRead m, BlockchainHelpers MainBlockchain)
+
 -- | Get current tip from GState DB.
 getTip :: MonadDBRead m => m HeaderHash
 getTip = maybeThrow (DBMalformed "no tip in GState DB") =<< getTipMaybe
@@ -82,14 +87,12 @@ getTipBlock = getTipSomething "block" dbGetBlock
 
 -- | Returns header of block that was requested from Block DB.
 getHeader
-    :: (HasConfiguration, MonadDBRead m, BlockchainHelpers MainBlockchain)
+    :: (HasConfiguration, MonadBlockDBSafe m)
     => HeaderHash -> m (Maybe BlockHeader)
 getHeader = dbGetBi BlockIndexDB . blockIndexKey
 
 -- | Get 'BlockHeader' corresponding to tip.
-getTipHeader
-    :: (MonadDBRead m, BlockchainHelpers MainBlockchain)
-    => m BlockHeader
+getTipHeader :: MonadBlockDBSafe m => m BlockHeader
 getTipHeader = getTipSomething "header" getHeader
 
 getTipSomething

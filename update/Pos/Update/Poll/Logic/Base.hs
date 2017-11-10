@@ -46,16 +46,15 @@ import           Pos.Core (BlockVersion (..), Coin, EpochIndex, HasConfiguration
                            sumCoins, unsafeAddCoin, unsafeIntegerToCoin, unsafeSubCoin)
 import           Pos.Core.Update (BlockVersionData (..), BlockVersionModifier (..), UpId,
                                   UpdateProposal (..), UpdateVote (..))
+import           Pos.Core.Update.Poll (BlockVersionState (..), ConfirmedProposalState (..),
+                                       DecidedProposalState (..), DpsExtra (..), ProposalState (..),
+                                       UndecidedProposalState (..), UpsExtra (..), bvsIsConfirmed,
+                                       combineVotes, cpsBlockVersion, isPositiveVote, newVoteState)
 import           Pos.Crypto (PublicKey, hash, shortHashF)
 import           Pos.Slotting (EpochSlottingData (..), SlottingData, addEpochSlottingData,
                                getCurrentEpochIndex, getNextEpochSlottingData)
 import           Pos.Update.Poll.Class (MonadPoll (..), MonadPollRead (..))
 import           Pos.Update.Poll.Failure (PollVerFailure (..))
-import           Pos.Update.Poll.Types (BlockVersionState (..), ConfirmedProposalState (..),
-                                        DecidedProposalState (..), DpsExtra (..),
-                                        ProposalState (..), UndecidedProposalState (..),
-                                        UpsExtra (..), bvsIsConfirmed, combineVotes,
-                                        cpsBlockVersion, isPositiveVote, newVoteState)
 import           Pos.Util.Util (leftToPanic)
 
 

@@ -23,6 +23,9 @@ import           Pos.Core (ChainDifficulty (..), Coin, EpochIndex, HeaderHash, I
 import           Pos.Core.Configuration (HasConfiguration, blkSecurityParam)
 import           Pos.Core.Update (BlockVersionData (..), UpId, UpdatePayload (..),
                                   UpdateProposal (..), UpdateVote (..), bvdUpdateProposalThd)
+import           Pos.Core.Update.Poll (ConfirmedProposalState (..), DecidedProposalState (..),
+                                       DpsExtra (..), ProposalState (..),
+                                       UndecidedProposalState (..), UpsExtra (..), psProposal)
 import           Pos.Crypto (hash, shortHashF)
 import           Pos.Data.Attributes (areAttributesKnown)
 import           Pos.Update.Poll.Class (MonadPoll (..), MonadPollRead (..))
@@ -32,9 +35,6 @@ import           Pos.Update.Poll.Logic.Base (canBeAdoptedBV, canCreateBlockBV, c
                                              putNewProposal, voteToUProposalState)
 import           Pos.Update.Poll.Logic.Version (verifyAndApplyProposalBVS, verifyBlockVersion,
                                                 verifySoftwareVersion)
-import           Pos.Update.Poll.Types (ConfirmedProposalState (..), DecidedProposalState (..),
-                                        DpsExtra (..), ProposalState (..),
-                                        UndecidedProposalState (..), UpsExtra (..), psProposal)
 import           Pos.Util.Util (Some (..))
 
 type ApplyMode m =

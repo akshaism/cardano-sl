@@ -22,12 +22,11 @@ import           Pos.Block.Base (mkGenesisBlock)
 import           Pos.Block.Logic (applyBlocksUnsafe, createMainBlockInternal, normalizeMempool,
                                   verifyBlocksPrefix)
 import           Pos.Block.Slog (ShouldCallBListener (..))
-import           Pos.Block.Types (Blund)
 import           Pos.Core (EpochOrSlot (..), SlotId (..), addressHash, epochIndexL, getEpochOrSlot,
                            getSlotIndex)
-import           Pos.Core.Block (Block)
+import           Pos.Core.Block (Block, Blund)
 import           Pos.Crypto (pskDelegatePk)
-import           Pos.DB.DB (getTipHeader)
+import qualified Pos.DB.GState.Common as GS
 import           Pos.Delegation.Logic (getDlgTransPsk)
 import           Pos.Delegation.Types (ProxySKBlockInfo)
 import           Pos.Generator.Block.Error (BlockGenError (..))
@@ -73,7 +72,7 @@ genBlocks params inj = do
   where
     genBlocksDo = do
         let numberOfBlocks = params ^. bgpBlockCount
-        tipEOS <- getEpochOrSlot <$> lift getTipHeader
+        tipEOS <- getEpochOrSlot <$> lift GS.getTipHeader
         let startEOS = succ tipEOS
         let finishEOS = toEnum $ fromEnum tipEOS + fromIntegral numberOfBlocks
         foldM' genOneBlock mempty [startEOS .. finishEOS]
@@ -103,7 +102,7 @@ genBlock eos = withCompileInfo def $ do
     leaders <- lift $ lrcActionOnEpochReason epoch "genBlock" LrcDB.getLeadersForEpoch
     case eos of
         EpochOrSlot (Left _) -> do
-            tipHeader <- lift getTipHeader
+            tipHeader <- lift GS.getTipHeader
             let slot0 = SlotId epoch minBound
             let genesisBlock = mkGenesisBlock (Just tipHeader) epoch leaders
             fmap Just $ withCurrentSlot slot0 $ lift $ verifyAndApply (Left genesisBlock)

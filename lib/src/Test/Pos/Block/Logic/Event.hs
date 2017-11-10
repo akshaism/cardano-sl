@@ -19,8 +19,8 @@ import qualified Data.Map as Map
 import qualified Data.Text as T
 
 import           Pos.Block.Logic.VAR (BlockLrcMode, rollbackBlocks, verifyAndApplyBlocks)
-import           Pos.Block.Types (Blund)
 import           Pos.Core (HasConfiguration, HeaderHash)
+import           Pos.Core.Block (Blund)
 import           Pos.DB.Pure (DBPureDiff, MonadPureDB, dbPureDiff, dbPureDump, dbPureReset)
 import           Pos.Exception (CardanoFatalError (..))
 import           Pos.Generator.BlockEvent (BlockApplyResult (..), BlockEvent, BlockEvent' (..),

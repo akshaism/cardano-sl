@@ -17,8 +17,9 @@ import           Test.QuickCheck.Arbitrary.Generic (genericArbitrary, genericShr
 import           Pos.Core (ApplicationName, BlockVersion (..), BlockVersionData (..),
                            HasConfiguration, SoftwareVersion (..), StakeholderId, addressHash)
 import           Pos.Core.Update (UpId, UpdateProposal (..))
+import qualified Pos.Core.Update.Poll as Poll
 import           Pos.Crypto (hash)
-import           Pos.Slotting.Types (SlottingData)
+import           Pos.Slotting (SlottingData)
 import           Pos.Update.BlockVersion (applyBVM)
 import qualified Pos.Update.Poll as Poll
 import qualified Pos.Util.Modifier as MM

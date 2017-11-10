@@ -34,8 +34,7 @@ import           Pos.Core.Block (BlockHeader)
 import           Pos.Core.Configuration (genesisHash)
 import           Pos.Crypto (hash)
 import           Pos.DB (MonadDBRead)
-import qualified Pos.DB.Block as DB
-import qualified Pos.DB.DB as DB
+import qualified Pos.DB.Block.Load as DB
 import           Pos.Delegation.Cede (dlgVerifyHeader, runDBCede)
 import qualified Pos.GState as GS
 import           Pos.Lrc.Context (HasLrcContext)
@@ -72,7 +71,7 @@ classifyNewHeader
     :: forall ctx m.
     ( HasConfiguration
     , MonadSlots ctx m
-    , DB.MonadBlockDB m
+    , MonadDBRead m
     , MonadSlots ctx m
     , HasLrcContext ctx
     )
@@ -81,7 +80,7 @@ classifyNewHeader
 classifyNewHeader (Left _) = pure $ CHUseless "genesis header is useless"
 classifyNewHeader (Right header) = fmap (either identity identity) <$> runExceptT $ do
     curSlot <- getCurrentSlot
-    tipHeader <- DB.getTipHeader
+    tipHeader <- GS.getTipHeader
     let tipEoS = getEpochOrSlot tipHeader
     let newHeaderEoS = getEpochOrSlot header
     let newHeaderSlot = header ^. headerSlotL
@@ -160,7 +159,7 @@ deriving instance Show BlockHeader => Show ClassifyHeadersRes
 --    from the current slot. See CSL-177.
 classifyHeaders ::
        forall ctx m.
-       ( DB.MonadBlockDB m
+       ( MonadDBRead m
        , MonadCatch m
        , HasLrcContext ctx
        , MonadSlots ctx m
@@ -171,9 +170,9 @@ classifyHeaders ::
     -> NewestFirst NE BlockHeader
     -> m ClassifyHeadersRes
 classifyHeaders inRecovery headers = do
-    tipHeader <- DB.getTipHeader
+    tipHeader <- GS.getTipHeader
     let tip = headerHash tipHeader
-    haveOldestParent <- isJust <$> DB.blkGetHeader oldestParentHash
+    haveOldestParent <- isJust <$> GS.getHeader oldestParentHash
     leaders <- LrcDB.getLeadersForEpoch oldestHeaderEpoch
     let headersValid =
             isVerSuccess $
@@ -223,7 +222,7 @@ classifyHeaders inRecovery headers = do
         lift $ logDebug $
             sformat ("Classifying headers: "%listJson) $ map (view headerHashG) headers
         lca <-
-            MaybeT . DB.blkGetHeader =<<
+            MaybeT . GS.getHeader =<<
             MaybeT (lcaWithMainChain $ toOldestFirst headers)
         let depthDiff :: BlockCount
             depthDiff = getChainDifficulty (tipHeader ^. difficultyL) -
@@ -247,7 +246,7 @@ classifyHeaders inRecovery headers = do
 -- 'recoveryHeadersMessage' headers starting from the the newest
 -- checkpoint that's in our main chain to the newest ones.
 getHeadersFromManyTo ::
-       ( DB.MonadBlockDB m
+       ( MonadDBRead m
        , WithLogger m
        , MonadError Text m
        , HasConfiguration
@@ -263,7 +262,7 @@ getHeadersFromManyTo checkpoints startM = do
                 checkpoints startM
     validCheckpoints <- noteM "Failed to retrieve checkpoints" $
         nonEmpty . catMaybes <$>
-        mapM DB.blkGetHeader (toList checkpoints)
+        mapM GS.getHeader (toList checkpoints)
     tip <- GS.getTip
     unless (all ((/= tip) . headerHash) validCheckpoints) $
         throwError "Found checkpoint that is equal to our tip"
@@ -362,8 +361,8 @@ getHeadersFromToIncl
     => HeaderHash -> HeaderHash -> m (Maybe (OldestFirst NE HeaderHash))
 getHeadersFromToIncl older newer = runMaybeT . fmap OldestFirst $ do
     -- oldest and newest blocks do exist
-    start <- MaybeT $ DB.blkGetHeader newer
-    end   <- MaybeT $ DB.blkGetHeader older
+    start <- MaybeT $ GS.getHeader newer
+    end   <- MaybeT $ GS.getHeader older
     guard $ getEpochOrSlot start >= getEpochOrSlot end
     let lowerBound = getEpochOrSlot end
     if newer == older
@@ -379,7 +378,7 @@ getHeadersFromToIncl older newer = runMaybeT . fmap OldestFirst $ do
         | nextHash == genesisHash = mzero
         | nextHash == older = pure $ nextHash <| hashes
         | otherwise = do
-            nextHeader <- MaybeT $ DB.blkGetHeader nextHash
+            nextHeader <- MaybeT $ GS.getHeader nextHash
             guard $ getEpochOrSlot nextHeader > lowerBound
             -- hashes are being prepended so the oldest hash will be the last
             -- one to be prepended and thus the order is OldestFirst

@@ -9,19 +9,14 @@ module Pos.Block.Slog.Types
 
        , SlogContext (..)
        , HasSlogContext (..)
-
-       , SlogUndo (..)
        ) where
 
 import           Universum
 
 import           Control.Lens (makeClassy)
-import qualified Data.Text.Buildable
-import           Formatting (bprint)
 import           System.Metrics.Label (Label)
 
-import           Pos.Core (ChainDifficulty, EpochIndex, FlatSlotId, HasConfiguration,
-                           LocalSlotIndex, slotIdF, unflattenSlotId)
+import           Pos.Core (ChainDifficulty, EpochIndex, FlatSlotId, LocalSlotIndex)
 import           Pos.Reporting.Metrics (MetricMonitorState)
 import           Pos.Util.Chrono (OldestFirst (..))
 

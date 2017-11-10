@@ -27,8 +27,7 @@ import           Pos.Context (recoveryInProgress)
 import           Pos.Core (headerHash, prevBlockL)
 import           Pos.Core.Block (Block, BlockHeader, MainBlockHeader, blockHeader)
 import           Pos.Crypto (shortHashF)
-import qualified Pos.DB.Block as DB
-import qualified Pos.DB.DB as DB
+import qualified Pos.DB.GState.Common as GS
 import           Pos.Security (AttackType (..), NodeAttackedError (..), SecurityParams (..),
                                shouldIgnoreAddress)
 import           Pos.Util.TimeWarp (nodeIdToAddress)
@@ -74,7 +73,7 @@ handleHeadersCommunication conv = do
                 ([], Nothing) -> Right . one <$> getLastMainHeader
                 ([], Just h)  ->
                     maybeToRight "getBlockHeader returned Nothing" . fmap one <$>
-                    DB.blkGetHeader h
+                    GS.getHeader h
                 (c1:cxs, _)   -> runExceptT
                     (getHeadersFromManyTo (c1:|cxs) mghTo)
             either onNoHeaders handleSuccess headers
@@ -83,10 +82,10 @@ handleHeadersCommunication conv = do
     -- genesis otherwise.
     getLastMainHeader :: m BlockHeader
     getLastMainHeader = do
-        tip :: Block <- DB.getTipBlock
+        tip :: Block <- GS.getTipBlock
         let tipHeader = tip ^. blockHeader
         case tip of
-            Left _  -> fromMaybe tipHeader <$> DB.blkGetHeader (tip ^. prevBlockL)
+            Left _  -> fromMaybe tipHeader <$> GS.getHeader (tip ^. prevBlockL)
             Right _ -> pure tipHeader
     handleSuccess h = do
         send conv (MsgHeaders h)

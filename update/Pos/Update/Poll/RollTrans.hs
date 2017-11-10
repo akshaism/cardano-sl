@@ -18,12 +18,12 @@ import           Universum
 import           Pos.Binary.Update ()
 import           Pos.Core.Configuration (HasConfiguration)
 import           Pos.Core.Types (SoftwareVersion (..))
+import           Pos.Core.Update.Poll (PrevValue, USUndo (..), cpsSoftwareVersion, maybeToPrev,
+                                       psProposal, unChangedBVL, unChangedConfPropsL,
+                                       unChangedPropsL, unChangedSVL, unLastAdoptedBVL,
+                                       unPrevProposersL, unSlottingDataL)
 import           Pos.Crypto (hash)
 import           Pos.Update.Poll.Class (MonadPoll (..), MonadPollRead (..))
-import           Pos.Update.Poll.Types (PrevValue, USUndo (..), cpsSoftwareVersion, maybeToPrev,
-                                        psProposal, unChangedBVL, unChangedConfPropsL,
-                                        unChangedPropsL, unChangedSVL, unLastAdoptedBVL,
-                                        unPrevProposersL, unSlottingDataL)
 import           Pos.Util.Util (ether)
 
 type RollT m = Ether.LazyStateT' USUndo m

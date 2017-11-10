@@ -22,9 +22,9 @@ import           Test.QuickCheck.Monadic (assert, pick, pre)
 import           Test.QuickCheck.Random (QCGen)
 
 import           Pos.Block.Logic (verifyAndApplyBlocks, verifyBlocksPrefix)
-import           Pos.Block.Types (Blund)
 import           Pos.Core (GenesisData (..), HasConfiguration, blkSecurityParam, epochSlots,
                            genesisData, headerHash)
+import           Pos.Core.Block (Blund)
 import           Pos.DB.Pure (dbPureDump)
 import           Pos.Generator.BlockEvent.DSL (BlockApplyResult (..), BlockEventGenT,
                                                BlockRollbackFailure (..), BlockRollbackResult (..),

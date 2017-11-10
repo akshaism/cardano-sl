@@ -30,7 +30,6 @@ library
                         Pos.Block.Pure
                         Pos.Block.RetrievalQueue
                         Pos.Block.Slog
-                        Pos.Block.Types
                         Pos.Context
                         Pos.Communication
                         Pos.Configuration
@@ -135,10 +134,6 @@ library
                         Pos.Util.Servant
 
   other-modules:        Pos.Aeson.Types
-
-                        -- Binary serialization
-                        Pos.Binary.Block.Types
-                        Pos.Binary.Delegation
 
                         -- Block processing
                         Pos.Block.BHelpers

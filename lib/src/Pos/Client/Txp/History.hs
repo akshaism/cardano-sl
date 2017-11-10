@@ -45,14 +45,13 @@ import           Mockable (CurrentTime, Mockable)
 import           Serokell.Util.Text (listJson)
 import           System.Wlog (WithLogger)
 
-import           Pos.Block.Types (Blund)
 import           Pos.Context (genesisBlock0)
 import           Pos.Core (Address, ChainDifficulty, HasConfiguration, HeaderHash, Timestamp (..),
                            difficultyL, headerHash)
+import           Pos.Core.Block (Blund)
 import           Pos.Core.Block (Block, MainBlock, mainBlockSlot, mainBlockTxPayload)
 import           Pos.Crypto (WithHash (..), withHash)
-import           Pos.DB (MonadDBRead, MonadGState)
-import           Pos.DB.Block (MonadBlockDB, blkGetBlund)
+import           Pos.DB (MonadDBRead, MonadGState, dbGetBlund)
 import qualified Pos.GState as GS
 import           Pos.KnownPeers (MonadFormatPeers (..))
 import           Pos.Network.Types (HasNodeType)
@@ -228,15 +227,10 @@ type TxHistoryEnv ctx m =
     , HasNodeType ctx
     )
 
-type TxHistoryEnv' ctx m =
-    ( MonadBlockDB m
-    , TxHistoryEnv ctx m
-    )
-
 type GenesisHistoryFetcher m = ToilT () (GenesisToil m)
 
 getBlockHistoryDefault
-    :: forall ctx m. (HasConfiguration, TxHistoryEnv' ctx m)
+    :: forall ctx m. (HasConfiguration, TxHistoryEnv ctx m)
     => [Address] -> m (Map TxId TxHistoryEntry)
 getBlockHistoryDefault addrs = do
     let bot      = headerHash genesisBlock0
@@ -250,7 +244,7 @@ getBlockHistoryDefault addrs = do
         getBlockTimestamp blk = getSlotStartPure systemStart (blk ^. mainBlockSlot) sd
 
         blockFetcher :: HeaderHash -> GenesisHistoryFetcher m (Map TxId TxHistoryEntry)
-        blockFetcher start = GS.foldlUpWhileM blkGetBlund fromBlund start (const $ const True)
+        blockFetcher start = GS.foldlUpWhileM dbGetBlund fromBlund start (const $ const True)
             (deriveAddrHistoryBlk addrs getBlockTimestamp) mempty
 
     runGenesisToil . evalToilTEmpty $ blockFetcher bot

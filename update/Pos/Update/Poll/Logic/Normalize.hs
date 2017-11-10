@@ -20,12 +20,13 @@ import           Pos.Core (Coin, EpochIndex, HasConfiguration, SlotId (siEpoch),
                            applyCoinPortionUp, mkCoin, unsafeAddCoin)
 import           Pos.Core.Update (UpId, UpdateProposal, UpdateProposals, UpdateVote (..),
                                   bvdUpdateProposalThd)
+import           Pos.Core.Update.Poll (DecidedProposalState (..), ProposalState (..),
+                                       UndecidedProposalState (..))
 import           Pos.Crypto (PublicKey, hash)
 import           Pos.Update.Poll.Class (MonadPoll (..), MonadPollRead (..))
 import           Pos.Update.Poll.Failure (PollVerFailure (..))
 import           Pos.Update.Poll.Logic.Apply (verifyAndApplyProposal, verifyAndApplyVoteDo)
-import           Pos.Update.Poll.Types (DecidedProposalState (..), LocalVotes, ProposalState (..),
-                                        UndecidedProposalState (..))
+import           Pos.Update.Poll.Modifier (LocalVotes)
 import           Pos.Util.Util (getKeys, sortWithMDesc)
 
 -- | Normalize given proposals and votes with respect to current Poll

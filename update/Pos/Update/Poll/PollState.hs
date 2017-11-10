@@ -28,14 +28,15 @@ import           Control.Lens (makeLenses)
 import qualified Data.HashMap.Strict as HM
 import qualified Data.HashSet as HS
 
+import           Pos.Core.Slotting (SlottingData)
 import           Pos.Core.Types (ApplicationName, BlockVersion, BlockVersionData, EpochIndex,
                                  NumSoftwareVersion, SoftwareVersion (..), StakeholderId)
 import           Pos.Core.Update (UpId, UpdateProposal (..))
+import           Pos.Core.Update.Poll (BlockVersionState, ConfirmedProposalState, ProposalState,
+                                       psProposal)
 import           Pos.Lrc.DB.Issuers (IssuersStakes)
 import           Pos.Lrc.Types (FullRichmenData)
-import           Pos.Slotting.Types (SlottingData)
-import           Pos.Update.Poll.Types (BlockVersionState, ConfirmedProposalState,
-                                        PollModifier (..), ProposalState, psProposal)
+import           Pos.Update.Poll.Modifier (PollModifier (..))
 import           Pos.Util.Modifier (foldlMapModWKey', modifyHashMap)
 
 data PollState = PollState

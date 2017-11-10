@@ -15,7 +15,7 @@ import           Universum
 import           Control.Monad.Trans (MonadTrans (..))
 import           Mockable (SharedAtomicT)
 
-import           Pos.Block.Types (Blund)
+import           Pos.Core.Block (Blund)
 import           Pos.DB.BatchOp (SomeBatchOp)
 import           Pos.Util.Chrono (NE, NewestFirst (..), OldestFirst (..))
 

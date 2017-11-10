@@ -1,24 +1,21 @@
 -- | Delegation-related local types.
 
 module Pos.Delegation.Types
-       ( DlgPayload (..)
-       , mkDlgPayload
-       , ProxySKLightConfirmation
-       , DlgUndo (..)
+       ( ProxySKLightConfirmation
        , DlgMemPool
        , ProxySKBlockInfo
+       , module Pos.Core.Delegation
        ) where
 
 import           Universum
 
-import qualified Data.Text.Buildable
-import           Formatting (bprint, (%))
-import           Serokell.Util (listJson)
-
 import           Pos.Binary.Core ()
-import           Pos.Core (ProxySKHeavy, ProxySKLight, ProxySigLight, StakeholderId)
+import           Pos.Core (ProxySKHeavy, ProxySKLight, ProxySigLight)
 import           Pos.Core.Delegation (DlgPayload (..), mkDlgPayload)
 import           Pos.Crypto (PublicKey)
+
+-- Re-export
+import           Pos.Core.Delegation
 
 -- | Map from issuer public keys to related heavy certs.
 type DlgMemPool = HashMap PublicKey ProxySKHeavy

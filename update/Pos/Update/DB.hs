@@ -47,24 +47,24 @@ import qualified Database.RocksDB as Rocks
 import           Serokell.Data.Memory.Units (Byte)
 
 import           Pos.Binary.Class (serialize')
-import           Pos.Binary.Infra.Slotting ()
+import           Pos.Binary.Core.Slotting ()
 import           Pos.Binary.Update ()
 import           Pos.Core (ApplicationName, BlockVersion, ChainDifficulty, NumSoftwareVersion,
                            SlotId, SoftwareVersion (..), StakeholderId, TimeDiff (..), epochSlots)
 import           Pos.Core.Configuration (HasConfiguration, genesisBlockVersionData)
 import           Pos.Core.Update (BlockVersionData (..), UpId, UpdateProposal (..))
+import           Pos.Core.Update.Poll (BlockVersionState (..), ConfirmedProposalState (..),
+                                       DecidedProposalState (dpsDifficulty), ProposalState (..),
+                                       UndecidedProposalState (upsSlot), bvsIsConfirmed,
+                                       cpsSoftwareVersion, psProposal)
 import           Pos.Crypto (hash)
 import           Pos.DB (DBIteratorClass (..), DBTag (..), IterType, MonadDB, MonadDBRead (..),
                          RocksBatchOp (..), dbSerializeValue, encodeWithKeyPrefix)
 import           Pos.DB.Error (DBError (DBMalformed))
 import           Pos.DB.GState.Common (gsGetBi, writeBatchGState)
-import           Pos.Slotting.Types (EpochSlottingData (..), SlottingData, createInitSlottingData)
+import           Pos.Slotting (EpochSlottingData (..), SlottingData, createInitSlottingData)
 import           Pos.Update.Configuration (HasUpdateConfiguration, ourAppName, ourSystemTag)
 import           Pos.Update.Constants (genesisBlockVersion, genesisSoftwareVersions)
-import           Pos.Update.Poll.Types (BlockVersionState (..), ConfirmedProposalState (..),
-                                        DecidedProposalState (dpsDifficulty), ProposalState (..),
-                                        UndecidedProposalState (upsSlot), bvsIsConfirmed,
-                                        cpsSoftwareVersion, psProposal)
 import           Pos.Util.Util (maybeThrow)
 
 ----------------------------------------------------------------------------

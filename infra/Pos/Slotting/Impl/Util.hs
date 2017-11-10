@@ -16,10 +16,10 @@ import           Pos.Core.Timestamp (addTimeDiffToTimestamp)
 import           Pos.Core.Types (EpochIndex, LocalSlotIndex, SlotId (..), Timestamp (..))
 import           Pos.Util.Util (leftToPanic)
 
+import           Pos.Core.Slotting (EpochSlottingData (..), SlottingData)
+import           Pos.Slotting.Base (getAllEpochIndices, getCurrentEpochIndex,
+                                    getNextEpochSlottingData, lookupEpochSlottingData)
 import           Pos.Slotting.MemState (MonadSlotsData, getSystemStartM, withSlottingVarAtomM)
-import           Pos.Slotting.Types (EpochSlottingData (..), SlottingData, getAllEpochIndices,
-                                     getCurrentEpochIndex, getNextEpochSlottingData,
-                                     lookupEpochSlottingData)
 
 -- | Approximate current slot using outdated slotting data.
 approxSlotUsingOutdated

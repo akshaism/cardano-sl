@@ -31,16 +31,16 @@ import           System.Wlog (WithLogger, logDebug, logInfo, logNotice, modifyLo
 
 import           Pos.Core (FlatSlotId, HasConfiguration, LocalSlotIndex, SlotId (..),
                            Timestamp (..), flattenSlotId, slotIdF)
+import           Pos.Core.Slotting (EpochSlottingData (..), SlottingData)
 import           Pos.Recovery.Info (MonadRecoveryInfo, recoveryInProgress)
 import           Pos.Reporting.Methods (MonadReporting, reportOrLogE)
 import           Pos.Shutdown (HasShutdownContext)
+import           Pos.Slotting.Base (computeSlotStart, lookupEpochSlottingData)
 import           Pos.Slotting.Class (MonadSlots (..))
 import           Pos.Slotting.Error (SlottingError (..))
 import           Pos.Slotting.Impl.Util (slotFromTimestamp)
 import           Pos.Slotting.MemState (MonadSlotsData, getCurrentNextEpochSlottingDataM,
                                         getEpochSlottingDataM, getSystemStartM)
-import           Pos.Slotting.Types (EpochSlottingData (..), SlottingData, computeSlotStart,
-                                     lookupEpochSlottingData)
 import           Pos.Util.Util (maybeThrow)
 
 

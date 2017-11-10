@@ -2,8 +2,6 @@
 
 module Pos.Slotting.Base
        ( getSlottingDataMap
-       , createSlottingDataUnsafe
-       , isValidSlottingDataMap
        , createInitSlottingData
        , getAllEpochIndices
        , getCurrentEpochIndex
@@ -19,10 +17,12 @@ module Pos.Slotting.Base
 import           Universum
 
 import           Data.Map.Strict as M
-import           Data.Time.Units (Millisecond, toMicroseconds)
+import           Data.Time.Units (toMicroseconds)
 
 import           Pos.Core (EpochIndex (..), LocalSlotIndex (..), TimeDiff (..), Timestamp (..),
                            addTimeDiffToTimestamp, getSlotIndex)
+import           Pos.Core.Slotting (CurrentEpochSlottingData, EpochSlottingData (..),
+                                    NextEpochSlottingData, SlottingData (..))
 import           Pos.Util.Util ()
 
 

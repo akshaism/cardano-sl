@@ -21,12 +21,12 @@ import           Pos.Core (BlockVersion, Coin, EpochIndex, HasConfiguration, Hea
                            SlotId (..), SoftforkRule (..), StakeholderId, crucialSlot, sumCoins,
                            unsafeIntegerToCoin)
 import           Pos.Core.Update (BlockVersionData (..))
+import           Pos.Core.Update.Poll (BlockVersionState (..))
 import           Pos.Update.Poll.Class (MonadPoll (..), MonadPollRead (..))
 import           Pos.Update.Poll.Failure (PollVerFailure (..))
 import           Pos.Update.Poll.Logic.Base (ConfirmedEpoch, CurEpoch, adoptBlockVersion,
                                              calcSoftforkThreshold, canBeAdoptedBV,
                                              updateSlottingData)
-import           Pos.Update.Poll.Types (BlockVersionState (..))
 import           Pos.Util.Util (inAssertMode)
 
 -- | Record the fact that main block with given version and leader has

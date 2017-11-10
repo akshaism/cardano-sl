@@ -59,9 +59,9 @@ import qualified Prelude
 import           Serokell.Util (listJson)
 
 import           Pos.AllSecrets (AllSecrets)
-import           Pos.Block.Types (Blund)
 import           Pos.Core (GenesisWStakeholders, HasConfiguration, HeaderHash, headerHash,
                            prevBlockL)
+import           Pos.Core.Block (Blund)
 import           Pos.Crypto.Hashing (hashHexF)
 import           Pos.Generator.Block (BlockGenParams (..), BlockTxpGenMode, MonadBlockGen,
                                       TxGenParams (..), genBlocks)

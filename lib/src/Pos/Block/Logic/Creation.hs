@@ -38,8 +38,8 @@ import           Pos.Core.Ssc (SscPayload)
 import           Pos.Core.Txp (TxAux (..), mkTxPayload)
 import           Pos.Core.Update (UpdatePayload (..))
 import           Pos.Crypto (SecretKey)
-import qualified Pos.DB.Block as DB
-import qualified Pos.DB.DB as DB
+import           Pos.DB.Class (MonadDBRead)
+import qualified Pos.DB.GState.Common as GS
 import           Pos.Delegation (DelegationVar, DlgPayload (getDlgPayload), ProxySKBlockInfo,
                                  clearDlgMemPool, getDlgMempool, mkDlgPayload)
 import           Pos.Exception (assertionFailed, reportFatalError)
@@ -70,7 +70,7 @@ type MonadCreateBlock ctx m
        , HasPrimaryKey ctx
        , HasSlogGState ctx -- to check chain quality
        , WithLogger m
-       , DB.MonadBlockDB m
+       , MonadDBRead m
        , MonadIO m
        , MonadMask m
        , HasLrcContext ctx
@@ -115,7 +115,7 @@ createGenesisBlockAndApply ::
 -- Genesis block for 0-th epoch is hardcoded.
 createGenesisBlockAndApply 0 = pure Nothing
 createGenesisBlockAndApply epoch = do
-    tipHeader <- DB.getTipHeader
+    tipHeader <- GS.getTipHeader
     -- preliminary check outside the lock,
     -- must be repeated inside the lock
     needGen <- needCreateGenesisBlock epoch tipHeader
@@ -133,7 +133,7 @@ createGenesisBlockDo
     => EpochIndex
     -> m (HeaderHash, Maybe GenesisBlock)
 createGenesisBlockDo epoch = do
-    tipHeader <- DB.getTipHeader
+    tipHeader <- GS.getTipHeader
     logDebug $ sformat msgTryingFmt epoch tipHeader
     needCreateGenesisBlock epoch tipHeader >>= \case
         False -> (BC.blockHeaderHash tipHeader, Nothing) <$ logShouldNot
@@ -235,7 +235,7 @@ createMainBlockInternal ::
     -> ProxySKBlockInfo
     -> m (Either Text MainBlock)
 createMainBlockInternal sId pske = do
-    tipHeader <- DB.getTipHeader
+    tipHeader <- GS.getTipHeader
     logInfoS $ sformat msgFmt tipHeader
     canCreateBlock sId tipHeader >>= \case
         Left reason -> pure (Left reason)
