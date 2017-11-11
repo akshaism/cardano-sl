@@ -26,12 +26,12 @@ import           Test.QuickCheck.Arbitrary.Generic (genericArbitrary)
 import           Pos.Arbitrary.Block ()
 import           Pos.Block.Base (mkGenesisBlock)
 import           Pos.Block.Logic (RawPayload (..), createMainBlockPure)
-import           Pos.Block.Types (SlogUndo, Undo)
 import qualified Pos.Communication ()
 import           Pos.Core (BlockCount (..), ChainDifficulty (..), EpochIndex (..), HasConfiguration,
                            LocalSlotIndex (..), SlotId (..), SlotLeaders, StakeholderId,
                            difficultyL)
-import           Pos.Core.Block (Block, BlockHeader, GenesisBlock, MainBlock, getBlockHeader)
+import           Pos.Core.Block (Block, BlockHeader, GenesisBlock, MainBlock, SlogUndo, Undo,
+                                 getBlockHeader)
 import           Pos.Core.Ssc (SscPayload)
 import           Pos.Core.Txp (TxAux)
 import           Pos.Core.Update (UpdatePayload (..))

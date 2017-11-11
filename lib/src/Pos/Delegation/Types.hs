@@ -11,7 +11,6 @@ import           Universum
 
 import           Pos.Binary.Core ()
 import           Pos.Core (ProxySKHeavy, ProxySKLight, ProxySigLight)
-import           Pos.Core.Delegation (DlgPayload (..), mkDlgPayload)
 import           Pos.Crypto (PublicKey)
 
 -- Re-export

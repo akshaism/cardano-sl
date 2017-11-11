@@ -31,17 +31,16 @@ import qualified Pos.Context as PC
 import           Pos.Core (ChainDifficulty, HasConfiguration, Timestamp, Tx, TxAux (..), TxId,
                            TxUndo, difficultyL, getCurrentTimestamp)
 import           Pos.Core.Block (BlockHeader)
+import           Pos.Core.Update.Poll (ConfirmedProposalState)
 import           Pos.Crypto (WithHash (..))
-import           Pos.DB.Block (MonadBlockDB)
-import           Pos.DB.DB (getTipHeader)
-import qualified Pos.GState as GS
+import           Pos.DB.Class (MonadDBRead)
+import qualified Pos.DB.GState.Common as GS
 import           Pos.Shutdown (HasShutdownContext, triggerShutdown)
 import           Pos.Slotting (MonadSlots (..), getNextEpochSlotDuration)
 import           Pos.Txp (MonadTxpLocal (..), ToilVerFailure, TxpNormalizeMempoolMode,
                           TxpProcessTransactionMode, getLocalTxsNUndo, txNormalize,
                           txProcessTransaction)
 import           Pos.Update.Context (UpdateContext (ucDownloadedUpdate))
-import           Pos.Update.Poll.Types (ConfirmedProposalState)
 import           Pos.Wallet.WalletMode (MonadBlockchainInfo (..), MonadUpdates (..))
 import           Pos.Wallet.Web.Account (AccountMode, getSKById)
 import           Pos.Wallet.Web.ClientTypes (CId, Wal)
@@ -61,7 +60,7 @@ getLastKnownHeader =
     atomically . readTVar =<< view (lensOf @PC.LastKnownHeaderTag)
 
 type BlockchainInfoEnv ctx m =
-    ( MonadBlockDB m
+    ( MonadDBRead m
     , PC.MonadLastKnownHeader ctx m
     , PC.MonadProgressHeader ctx m
     , MonadReader ctx m
@@ -76,7 +75,7 @@ networkChainDifficultyWebWallet
     => m (Maybe ChainDifficulty)
 networkChainDifficultyWebWallet = getLastKnownHeader >>= \case
     Just lh -> do
-        thDiff <- view difficultyL <$> getTipHeader
+        thDiff <- view difficultyL <$> GS.getTipHeader
         let lhDiff = lh ^. difficultyL
         return . Just $ max thDiff lhDiff
     Nothing -> pure Nothing
@@ -87,7 +86,7 @@ localChainDifficultyWebWallet
 localChainDifficultyWebWallet = do
     -- Workaround: Make local chain difficulty monotonic
     prevMaxDifficulty <- fromMaybe 0 <$> GS.getMaxSeenDifficultyMaybe
-    currDifficulty <- view difficultyL <$> getTipHeader
+    currDifficulty <- view difficultyL <$> GS.getTipHeader
     return $ max prevMaxDifficulty currDifficulty
 
 connectedPeersWebWallet

@@ -23,8 +23,7 @@ import           Formatting (sformat, (%))
 import           Pos.Binary.Core.Block ()
 import           Pos.Core (BlockCount, HasConfiguration, HasDifficulty (difficultyL),
                            HasPrevBlock (prevBlockL), HeaderHash)
-import           Pos.Core.Block (Blund)
-import           Pos.Core.Block (Block, BlockHeader)
+import           Pos.Core.Block (Block, BlockHeader, Blund)
 import qualified Pos.Core.Block as CB
 import           Pos.Core.Configuration (genesisHash)
 import           Pos.Crypto (shortHashF)

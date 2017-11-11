@@ -54,12 +54,10 @@ import           Formatting (sformat, shown, stext, (%))
 import           Network.EngineIO (SocketId)
 import           Network.SocketIO (Socket, socketId)
 import qualified Pos.Block.Logic as DB
-import           Pos.Block.Types (Blund)
-import           Pos.Core.Block (Block, mainBlockTxPayload)
+import           Pos.Core.Block (Block, Blund, mainBlockTxPayload)
 import           Pos.Core.Txp (Tx (..), TxOut (..), TxOutAux (..), txOutAddress, txpTxs)
 import           Pos.Crypto (hash, withHash)
-import qualified Pos.DB.Block as DB
-import           Pos.DB.Class (MonadDBRead)
+import           Pos.DB.Class (MonadDBRead, dbGetBlund)
 import           Pos.Explorer.Core (TxExtra (..))
 import qualified Pos.Explorer.DB as DB
 import qualified Pos.GState as DB
@@ -311,7 +309,7 @@ getBlundsFromTo
 getBlundsFromTo recentBlock oldBlock = do
     mheaders <- DB.getHeadersFromToIncl oldBlock recentBlock
     forM (getOldestFirst <$> mheaders) $ \(_ :| headers) ->
-        catMaybes <$> forM headers DB.blkGetBlund
+        catMaybes <$> forM headers dbGetBlund
 
 addrsTouchedByTx
     :: (MonadDBRead m, WithLogger m)

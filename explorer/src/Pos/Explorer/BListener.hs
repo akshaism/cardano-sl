@@ -27,10 +27,9 @@ import qualified Ether
 import           System.Wlog (WithLogger)
 
 import           Pos.Block.BListener (MonadBListener (..))
-import           Pos.Block.Types (Blund)
 import           Pos.Core (HasConfiguration, HeaderHash, LocalSlotIndex (..), SlotId (..),
                            difficultyL, epochIndexL, getChainDifficulty, headerHash, mainBlockSlot)
-import           Pos.Core.Block (Block, MainBlock, mainBlockTxPayload)
+import           Pos.Core.Block (Block, Blund, MainBlock, mainBlockTxPayload)
 import           Pos.Core.Txp (Tx, txpTxs)
 import           Pos.Crypto (withHash)
 import           Pos.DB.BatchOp (SomeBatchOp (..))

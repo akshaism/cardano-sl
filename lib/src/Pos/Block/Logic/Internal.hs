@@ -37,8 +37,8 @@ import           Pos.Block.Slog (BypassSecurityCheck (..), MonadSlogApply, Monad
                                  ShouldCallBListener, slogApplyBlocks, slogRollbackBlocks)
 import           Pos.Core (HasConfiguration, IsGenesisHeader, IsMainHeader, epochIndexL, gbBody,
                            gbHeader, headerHash)
-import           Pos.Core.Block (Blund, Undo (undoTx, undoUS))
-import           Pos.Core.Block (Block, GenesisBlock, MainBlock, mbTxPayload, mbUpdatePayload)
+import           Pos.Core.Block (Block, Blund, GenesisBlock, MainBlock, Undo (undoTx, undoUS),
+                                 mbTxPayload, mbUpdatePayload)
 import           Pos.Core.Txp (TxPayload)
 import           Pos.Core.Update (UpdateBlock, UpdatePayload)
 import           Pos.DB (MonadDB, MonadDBRead, MonadGState, SomeBatchOp (..))

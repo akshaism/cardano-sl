@@ -29,8 +29,7 @@ import           Pos.Binary.Communication ()
 import           Pos.Context (lrcActionOnEpochReason)
 import           Pos.Core (EpochIndex (..), HasConfiguration, StakeholderId, addressHash,
                            epochIndexL, gbHeader, headerHash, prevBlockL, siEpoch)
-import           Pos.Core.Block (Blund, Undo (undoDlg))
-import           Pos.Core.Block (Block, mainBlockDlgPayload, mainBlockSlot)
+import           Pos.Core.Block (Block, Blund, Undo (undoDlg), mainBlockDlgPayload, mainBlockSlot)
 import           Pos.Crypto (ProxySecretKey (..), shortHashF)
 import           Pos.DB (DBError (DBMalformed), MonadDBRead, SomeBatchOp (..))
 import qualified Pos.DB as DB

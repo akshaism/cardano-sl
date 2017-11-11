@@ -49,16 +49,16 @@ import           Formatting (build, sformat, (%))
 import           System.Wlog (HasLoggerName, WithLogger, logError, logInfo, logWarning,
                               modifyLoggerName)
 
-import           Pos.Block.Types (Blund, undoTx)
 import           Pos.Client.Txp.History (TxHistoryEntry (..), txHistoryListToMap)
 import           Pos.Core (BlockHeaderStub, ChainDifficulty, HasConfiguration, HasDifficulty (..),
                            HeaderHash, Timestamp, blkSecurityParam, genesisHash, headerHash,
                            headerSlotL, timestampToPosix)
-import           Pos.Core.Block (BlockHeader, getBlockHeader, mainBlockTxPayload)
+import           Pos.Core.Block (BlockHeader, Blund, getBlockHeader, mainBlockTxPayload, undoTx)
 import           Pos.Core.Txp (TxAux (..), TxOutAux (..), TxUndo, toaOut, txOutAddress)
 import           Pos.Crypto (EncryptedSecretKey, WithHash (..), shortHashF, withHash)
-import qualified Pos.DB.Block as DB
-import qualified Pos.DB.DB as DB
+import qualified Pos.DB.Block.Load as GS
+import           Pos.DB.Class (MonadDBRead (..), dbGetBlund)
+import qualified Pos.DB.GState.Common as GS
 import qualified Pos.GState as GS
 import           Pos.GState.BlockExtra (foldlUpWhileM, resolveForwardLink)
 import           Pos.Slotting (MonadSlots (..), MonadSlotsData, getSlotStartPure, getSystemStartM)
@@ -91,9 +91,9 @@ import           Pos.Wallet.Web.Util (getWalletAddrMetas)
 
 type BlockLockMode ctx m =
      ( WithLogger m
+     , MonadDBRead m
      , MonadReader ctx m
      , HasLens StateLock ctx StateLock
-     , DB.MonadBlockDB m
      , MonadMask m
      )
 
@@ -130,7 +130,7 @@ txMempoolToModifier encSK = do
             logError errMsg
             throwM $ InternalError errMsg
 
-    tipH <- DB.getTipHeader
+    tipH <- GS.getTipHeader
     allAddresses <- getWalletAddrMetas Ever wId
     case topsortTxs wHash txsWUndo of
         Nothing      -> mempty <$ logWarning "txMempoolToModifier: couldn't topsort mempool txs"
@@ -156,7 +156,7 @@ syncWalletsWithGState encSKs = forM_ encSKs $ \encSK -> handleAll (onErr encSK) 
     WS.getWalletSyncTip wAddr >>= \case
         Nothing                -> logWarningS $ sformat ("There is no syncTip corresponding to wallet #"%build) wAddr
         Just NotSynced         -> syncDo encSK Nothing
-        Just (SyncedWith wTip) -> DB.blkGetHeader wTip >>= \case
+        Just (SyncedWith wTip) -> GS.getHeader wTip >>= \case
             Nothing ->
                 throwM $ InternalError $
                     sformat ("Couldn't get block header of wallet by last synced hh: "%build) wTip
@@ -167,7 +167,7 @@ syncWalletsWithGState encSKs = forM_ encSKs $ \encSK -> handleAll (onErr encSK) 
     syncDo :: EncryptedSecretKey -> Maybe BlockHeader -> m ()
     syncDo encSK wTipH = do
         let wdiff = maybe (0::Word32) (fromIntegral . ( ^. difficultyL)) wTipH
-        gstateTipH <- DB.getTipHeader
+        gstateTipH <- GS.getTipHeader
         -- If account's syncTip is before the current gstate's tip,
         -- then it loads accounts and addresses starting with @wHeader@.
         -- syncTip can be before gstate's the current tip
@@ -180,7 +180,7 @@ syncWalletsWithGState encSKs = forM_ encSKs $ \encSK -> handleAll (onErr encSK) 
                 -- rollback can't occur more then @blkSecurityParam@ blocks,
                 -- so we can sync wallet and GState without the block lock
                 -- to avoid blocking of blocks verification/application.
-                bh <- unsafeLast . getNewestFirst <$> DB.loadHeadersByDepth (blkSecurityParam + 1) (headerHash gstateTipH)
+                bh <- unsafeLast . getNewestFirst <$> GS.loadHeadersByDepth (blkSecurityParam + 1) (headerHash gstateTipH)
                 logInfo $
                     sformat ("Wallet's tip is far from GState tip. Syncing with "%build%" without the block lock")
                     (headerHash bh)
@@ -189,7 +189,7 @@ syncWalletsWithGState encSKs = forM_ encSKs $ \encSK -> handleAll (onErr encSK) 
             else pure wTipH
         withStateLockNoMetrics HighPriority $ \tip -> do
             logInfo $ sformat ("Syncing wallet with "%build%" under the block lock") tip
-            tipH <- maybe (error "No block header corresponding to tip") pure =<< DB.blkGetHeader tip
+            tipH <- maybe (error "No block header corresponding to tip") pure =<< GS.getHeader tip
             syncWalletWithGStateUnsafe encSK wNewTip tipH
 
 ----------------------------------------------------------------------------
@@ -201,7 +201,7 @@ syncWalletsWithGState encSKs = forM_ encSKs $ \encSK -> handleAll (onErr encSK) 
 syncWalletWithGStateUnsafe
     :: forall ctx m .
     ( MonadWalletDB ctx m
-    , DB.MonadBlockDB m
+    , MonadDBRead m
     , WithLogger m
     , MonadSlotsData ctx m
     , HasConfiguration
@@ -255,13 +255,13 @@ syncWalletWithGStateUnsafe encSK wTipHeader gstateH = setLogger $ do
                      -- We don't load blocks explicitly, because blockain can be long.
                      maybe (pure mempty)
                          (\wNextH ->
-                            foldlUpWhileM DB.blkGetBlund (applyBlock allAddresses) wNextH loadCond mappendR mempty)
+                            foldlUpWhileM dbGetBlund (applyBlock allAddresses) wNextH loadCond mappendR mempty)
                          =<< resolveForwardLink wHeader
                | diff gstateH < diff wHeader -> do
                      -- This rollback can occur
                      -- if the application was interrupted during blocks application.
                      blunds <- getNewestFirst <$>
-                         DB.loadBlundsWhile (\b -> getBlockHeader b /= gstateH) (headerHash wHeader)
+                         GS.loadBlundsWhile (\b -> getBlockHeader b /= gstateH) (headerHash wHeader)
                      pure $ foldl' (\r b -> r <> rollbackBlock allAddresses b) mempty blunds
                | otherwise -> mempty <$ logInfoS (sformat ("Wallet "%build%" is already synced") wAddr)
 
@@ -288,7 +288,7 @@ syncWalletWithGStateUnsafe encSK wTipHeader gstateH = setLogger $ do
     firstGenesisHeader :: m BlockHeader
     firstGenesisHeader = resolveForwardLink (genesisHash @BlockHeaderStub) >>=
         maybe (error "Unexpected state: genesisHash doesn't have forward link")
-            (maybe (error "No genesis block corresponding to header hash") pure <=< DB.blkGetHeader)
+            (maybe (error "No genesis block corresponding to header hash") pure <=< GS.getHeader)
 
 -- Process transactions on block application,
 -- decrypt our addresses, and add/delete them to/from wallet-db.

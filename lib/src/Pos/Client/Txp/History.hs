@@ -48,8 +48,7 @@ import           System.Wlog (WithLogger)
 import           Pos.Context (genesisBlock0)
 import           Pos.Core (Address, ChainDifficulty, HasConfiguration, HeaderHash, Timestamp (..),
                            difficultyL, headerHash)
-import           Pos.Core.Block (Blund)
-import           Pos.Core.Block (Block, MainBlock, mainBlockSlot, mainBlockTxPayload)
+import           Pos.Core.Block (Block, Blund, MainBlock, mainBlockSlot, mainBlockTxPayload)
 import           Pos.Crypto (WithHash (..), withHash)
 import           Pos.DB (MonadDBRead, MonadGState, dbGetBlund)
 import qualified Pos.GState as GS

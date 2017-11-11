@@ -58,9 +58,8 @@ import qualified Data.List.NonEmpty as NE
 import           Data.Time.Clock.POSIX (POSIXTime)
 import           Formatting (build, sformat, (%))
 import           Pos.Binary (Bi, biSize)
-import           Pos.Block.Types (Undo (..))
 import           Pos.Core (timestampToPosix)
-import           Pos.Core.Block (MainBlock, mainBlockSlot, mainBlockTxPayload, mcdSlot)
+import           Pos.Core.Block (MainBlock, Undo (..), mainBlockSlot, mainBlockTxPayload, mcdSlot)
 import           Pos.Core.Txp (Tx (..), TxId, TxOut (..), TxOutAux (..), TxUndo, txpTxs, _txOutputs)
 import           Pos.Crypto (AbstractHash, Hash, HashAlgorithm, hash)
 

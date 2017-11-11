@@ -20,7 +20,6 @@ import           Pos.DB.Class (MonadDBRead)
 import           Pos.DB.GState.Common (getTip)
 import           Pos.Slotting (MonadSlots (getCurrentSlot))
 import           Pos.Update.Poll.Modifier (LocalVotes, PollModifier)
-import           Pos.Update.Poll.Modifier ()
 
 -- | MemPool is data maintained by node to be included into block and
 -- relayed to other nodes.

@@ -36,8 +36,8 @@ import           System.Wlog (CanLog, HasLoggerName, LoggerName, NamedPureLogger
                               getLoggerName, logDebug, logInfo, logWarning, modifyLoggerName,
                               usingLoggerName)
 
-import           Pos.Block.Types (Blund)
 import           Pos.Core (addressF)
+import           Pos.Core.Block (Blund)
 import qualified Pos.GState as DB
 
 import           Pos.Explorer.Aeson.ClientTypes ()
